@@ -27,6 +27,19 @@ var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
+var numericKeyboard2 = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonURL("1.com", "http://1.com"),
+		tgbotapi.NewInlineKeyboardButtonSwitch("2sw", "open 2"),
+		tgbotapi.NewInlineKeyboardButtonData("3", "3"),
+	),
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("7", "4"),
+		tgbotapi.NewInlineKeyboardButtonData("8", "5"),
+		tgbotapi.NewInlineKeyboardButtonData("9", "6"),
+	),
+)
+
 func configure() config.Configuration {
 
 	// server details
@@ -63,7 +76,7 @@ func main() {
 
 			bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, update.CallbackQuery.Data))
 
-			bot.Send(tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data))
+			bot.Send(tgbotapi.NewEditMessageReplyMarkup(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, numericKeyboard2))
 		}
 		if update.Message != nil {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
