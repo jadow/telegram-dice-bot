@@ -61,7 +61,7 @@ func getMessage(update tgbotapi.Update) string {
 	if randomLimit, ok := menu[update.Message.Text]; ok {
 		return fmt.Sprintf("%s rolled a %d", update.Message.From.UserName, rand.Intn(randomLimit)+1)
 	}
-	return ""
+	return update.Message.Text
 }
 
 func controlMenu(message string) interface{} {
@@ -97,9 +97,9 @@ func main() {
 			continue
 		}
 
-		message := update.Message.Text
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, getMessage(update))
-		msg.ReplyMarkup = controlMenu(message)
+		reply := getMessage(update)
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
+		msg.ReplyMarkup = controlMenu(update.Message.Text)
 
 		bot.Send(msg)
 	}
