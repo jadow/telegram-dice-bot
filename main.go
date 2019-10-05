@@ -36,6 +36,15 @@ var numericKeyboard = tgbotapi.NewReplyKeyboard(
 	),
 )
 
+var menu = map[string]int{
+	dice4:  4,
+	dice6:  6,
+	dice8:  8,
+	dice10: 10,
+	dice12: 12,
+	dice20: 20,
+}
+
 func configure() config.Configuration {
 
 	// server details
@@ -46,6 +55,23 @@ func configure() config.Configuration {
 	}
 
 	return *c
+}
+
+func getMessage(update tgbotapi.Update) string {
+	if randomLimit, ok := menu[update.Message.Text]; ok {
+		return fmt.Sprintf("%s rolled a %d", update.Message.From.UserName, rand.Intn(randomLimit)+1)
+	}
+	return ""
+}
+
+func controlMenu(message string) interface{} {
+	switch message {
+	case "open":
+		return numericKeyboard
+	case "close":
+		return tgbotapi.NewRemoveKeyboard(true)
+	}
+	return nil
 }
 
 func main() {
@@ -70,35 +96,10 @@ func main() {
 		if update.Message == nil {
 			continue
 		}
-		reply := ""
-		randomLimit := 0
-		switch update.Message.Text {
-		case dice4:
-			randomLimit = 4
-		case dice6:
-			randomLimit = 6
-		case dice8:
-			randomLimit = 8
-		case dice10:
-			randomLimit = 10
-		case dice12:
-			randomLimit = 12
-		case dice20:
-			randomLimit = 20
-		}
 
-		if randomLimit > 0 {
-			reply = fmt.Sprintf("%s rolled a %d", update.Message.From.UserName, rand.Intn(randomLimit)+1)
-		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
-
-		switch update.Message.Text {
-		case "open":
-			msg.ReplyMarkup = numericKeyboard
-		case "close":
-			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		}
+		message := update.Message.Text
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, getMessage(update))
+		msg.ReplyMarkup = controlMenu(message)
 
 		bot.Send(msg)
 	}
