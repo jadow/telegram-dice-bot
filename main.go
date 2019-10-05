@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/jadow/Telegram-Dice-Bot/config"
 	"github.com/tkanos/gonfig"
@@ -12,31 +13,26 @@ import (
 
 const (
 	configPath = "config/config.json"
+	dice4      = "4 side dice"
+	dice6      = "6 side dice"
+	dice8      = "8 side dice"
+	dice10     = "10 side dice"
+	dice12     = "12 side dice"
+	dice20     = "20 side dice"
 )
 
-var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL("1.com", "http://1.com"),
-		tgbotapi.NewInlineKeyboardButtonSwitch("2sw", "open 2"),
-		tgbotapi.NewInlineKeyboardButtonData("3", "3"),
+var numericKeyboard = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(dice4),
+		tgbotapi.NewKeyboardButton(dice6),
 	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("4", "4"),
-		tgbotapi.NewInlineKeyboardButtonData("5", "5"),
-		tgbotapi.NewInlineKeyboardButtonData("6", "6"),
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(dice8),
+		tgbotapi.NewKeyboardButton(dice10),
 	),
-)
-
-var numericKeyboard2 = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL("1.com", "http://1.com"),
-		tgbotapi.NewInlineKeyboardButtonSwitch("2sw", "open 2"),
-		tgbotapi.NewInlineKeyboardButtonData("3", "3"),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("7", "4"),
-		tgbotapi.NewInlineKeyboardButtonData("8", "5"),
-		tgbotapi.NewInlineKeyboardButtonData("9", "6"),
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(dice12),
+		tgbotapi.NewKeyboardButton(dice20),
 	),
 )
 
@@ -71,23 +67,40 @@ func main() {
 
 	fmt.Print(".")
 	for update := range updates {
-		if update.CallbackQuery != nil {
-			fmt.Print(update)
-
-			bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, update.CallbackQuery.Data))
-
-			bot.Send(tgbotapi.NewEditMessageReplyMarkup(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, numericKeyboard2))
+		if update.Message == nil {
+			continue
 		}
-		if update.Message != nil {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-
-			switch update.Message.Text {
-			case "open":
-				msg.ReplyMarkup = numericKeyboard
-
-			}
-
-			bot.Send(msg)
+		reply := ""
+		randomLimit := 0
+		switch update.Message.Text {
+		case dice4:
+			randomLimit = 4
+		case dice6:
+			randomLimit = 6
+		case dice8:
+			randomLimit = 8
+		case dice10:
+			randomLimit = 10
+		case dice12:
+			randomLimit = 12
+		case dice20:
+			randomLimit = 20
 		}
+
+		if randomLimit > 0 {
+			reply = fmt.Sprintf("%s rolled a %d", update.Message.From.UserName, rand.Intn(randomLimit)+1)
+		}
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
+
+		switch update.Message.Text {
+		case "open":
+			msg.ReplyMarkup = numericKeyboard
+		case "close":
+			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		}
+
+		bot.Send(msg)
 	}
+
 }
