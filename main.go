@@ -105,3 +105,24 @@ func main() {
 	}
 
 }
+
+//refactoring
+func checkCommand(update tgbotapi.Update) tgbotapi.MessageConfig {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+	if update.Message.IsCommand() {
+
+		switch update.Message.Command() {
+		case "start", "help":
+			msg.Text = ""
+		case "open":
+			msg.Text = ""
+			msg.ReplyMarkup = numericKeyboard
+		case "close":
+			msg.Text = ""
+			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		}
+	} else {
+		msg.Text = getMessage(update)
+	}
+	return msg
+}
