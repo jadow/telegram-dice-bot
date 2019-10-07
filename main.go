@@ -12,13 +12,16 @@ import (
 )
 
 const (
-	configPath = "config/config.json"
-	dice4      = "4 side dice"
-	dice6      = "6 side dice"
-	dice8      = "8 side dice"
-	dice10     = "10 side dice"
-	dice12     = "12 side dice"
-	dice20     = "20 side dice"
+	configPath    = "config/config.json"
+	dice4         = "4 side dice"
+	dice6         = "6 side dice"
+	dice8         = "8 side dice"
+	dice10        = "10 side dice"
+	dice12        = "12 side dice"
+	dice20        = "20 side dice"
+	help          = "telegram bot for rolling dice\n/open to open keyboard\n/close to close keyboard"
+	openKeyboard  = "roll dice?"
+	closeKeyboard = "closing keyboard"
 )
 
 var numericKeyboard = tgbotapi.NewReplyKeyboard(
@@ -71,14 +74,23 @@ func getMessage(update tgbotapi.Update) string {
 	return update.Message.Text
 }
 
-func controlMenu(message string) interface{} {
-	switch message {
-	case "open":
-		return numericKeyboard
-	case "close":
-		return tgbotapi.NewRemoveKeyboard(true)
+func checkCommand(update tgbotapi.Update) tgbotapi.MessageConfig {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+	if update.Message.IsCommand() {
+		switch update.Message.Command() {
+		case "start", "help":
+			msg.Text = help
+		case "open":
+			msg.Text = openKeyboard
+			msg.ReplyMarkup = numericKeyboard
+		case "close":
+			msg.Text = closeKeyboard
+			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		}
+	} else {
+		msg.Text = getMessage(update)
 	}
-	return nil
+	return msg
 }
 
 func main() {
@@ -107,26 +119,4 @@ func main() {
 		msg := checkCommand(update)
 		bot.Send(msg)
 	}
-
-}
-
-//refactoring
-func checkCommand(update tgbotapi.Update) tgbotapi.MessageConfig {
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-	if update.Message.IsCommand() {
-
-		switch update.Message.Command() {
-		case "start", "help":
-			msg.Text = "telegram bot for rolling dice\n/open to open keyboard\n/close to close keyboard"
-		case "open":
-			msg.Text = "opening keyboard"
-			msg.ReplyMarkup = numericKeyboard
-		case "close":
-			msg.Text = "closing keyboard"
-			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		}
-	} else {
-		msg.Text = getMessage(update)
-	}
-	return msg
 }
