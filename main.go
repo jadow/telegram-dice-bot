@@ -57,9 +57,16 @@ func configure() config.Configuration {
 	return *c
 }
 
+func getName(update tgbotapi.Update) string {
+	if update.Message.From.UserName != "" {
+		return update.Message.From.UserName
+	}
+	return update.Message.From.FirstName
+}
+
 func getMessage(update tgbotapi.Update) string {
 	if randomLimit, ok := menu[update.Message.Text]; ok {
-		return fmt.Sprintf("%s rolled a %d", update.Message.From.UserName, rand.Intn(randomLimit)+1)
+		return fmt.Sprintf("%s rolled a %d", getName(update), rand.Intn(randomLimit)+1)
 	}
 	return update.Message.Text
 }
@@ -97,10 +104,7 @@ func main() {
 			continue
 		}
 
-		reply := getMessage(update)
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
-		msg.ReplyMarkup = controlMenu(update.Message.Text)
-
+		msg := checkCommand(update)
 		bot.Send(msg)
 	}
 
@@ -113,12 +117,12 @@ func checkCommand(update tgbotapi.Update) tgbotapi.MessageConfig {
 
 		switch update.Message.Command() {
 		case "start", "help":
-			msg.Text = ""
+			msg.Text = "telegram bot for rolling dice\n/open to open keyboard\n/close to close keyboard"
 		case "open":
-			msg.Text = ""
+			msg.Text = "opening keyboard"
 			msg.ReplyMarkup = numericKeyboard
 		case "close":
-			msg.Text = ""
+			msg.Text = "closing keyboard"
 			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 		}
 	} else {
