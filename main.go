@@ -112,6 +112,22 @@ func main() {
 
 	fmt.Print(".")
 	for update := range updates {
+
+		if update.InlineQuery != nil {
+			result := tgbotapi.NewInlineQueryResultArticle(update.InlineQuery.ID, "Echo", update.InlineQuery.Query)
+			result.Description = update.InlineQuery.Query
+
+			res := tgbotapi.InlineConfig{
+				InlineQueryID: update.InlineQuery.ID,
+				IsPersonal:    true,
+				CacheTime:     0,
+				Results:       []interface{}{result},
+			}
+
+			bot.AnswerInlineQuery(res)
+			continue
+		}
+
 		if update.Message == nil {
 			continue
 		}
