@@ -13,12 +13,12 @@ import (
 
 const (
 	configPath    = "config/config.json"
-	dice4         = "4 side dice"
-	dice6         = "6 side dice"
-	dice8         = "8 side dice"
-	dice10        = "10 side dice"
-	dice12        = "12 side dice"
-	dice20        = "20 side dice"
+	dice4         = "4 sided dice"
+	dice6         = "6 sided dice"
+	dice8         = "8 sided dice"
+	dice10        = "10 sided dice"
+	dice12        = "12 sided dice"
+	dice20        = "20 sided dice"
 	help          = "telegram bot for rolling dice\n/open to open keyboard\n/close to close keyboard"
 	openKeyboard  = "roll dice?"
 	closeKeyboard = "closing keyboard"
@@ -48,6 +48,15 @@ var diceStringInt = map[string]int{
 	dice20: 20,
 }
 
+var mapIntString = map[int]string{
+	1: "1",
+	2: "2",
+	3: "3",
+	4: "4",
+	5: "5",
+	6: "6",
+}
+
 func configure() config.Configuration {
 
 	// server details
@@ -71,41 +80,30 @@ func getDice(randomLimit int) int {
 	return rand.Intn(randomLimit) + 1
 }
 
-func getMessage(name string, random int) string {
+func getDiceMessage(name string, random int) string {
 	return fmt.Sprintf("%s rolled a %d", name, random)
 }
 
+func getDiceRollMessage(name string, dice string, random int) string {
+	return fmt.Sprintf("%s rolled a %s dice, ", name, dice) + getDiceMessage(name, random)
+}
+
 func getQuery(update tgbotapi.Update) tgbotapi.InlineConfig {
-
-	result4 := tgbotapi.NewInlineQueryResultArticle("1", dice4,
-		getMessage(getName(*update.InlineQuery.From), getDice(diceStringInt[dice4])))
-	result4.Description = dice4
-
-	result6 := tgbotapi.NewInlineQueryResultArticle("2", dice6,
-		getMessage(getName(*update.InlineQuery.From), getDice(diceStringInt[dice6])))
-	result6.Description = dice6
-
-	result8 := tgbotapi.NewInlineQueryResultArticle("3", dice8,
-		getMessage(getName(*update.InlineQuery.From), getDice(diceStringInt[dice8])))
-	result8.Description = dice8
-
-	result10 := tgbotapi.NewInlineQueryResultArticle("4", dice10,
-		getMessage(getName(*update.InlineQuery.From), getDice(diceStringInt[dice10])))
-	result10.Description = dice10
-
-	result12 := tgbotapi.NewInlineQueryResultArticle("5", dice12,
-		getMessage(getName(*update.InlineQuery.From), getDice(diceStringInt[dice12])))
-	result12.Description = dice12
-
-	result20 := tgbotapi.NewInlineQueryResultArticle("6", dice20,
-		getMessage(getName(*update.InlineQuery.From), getDice(diceStringInt[dice20])))
-	result20.Description = dice20
+	results := []interface{}{}
+	value := 1
+	for i, v := range diceStringInt {
+		result := tgbotapi.NewInlineQueryResultArticle(mapIntString[value], i,
+			getDiceRollMessage(getName(*update.InlineQuery.From), i, getDice(v)))
+		result.Description = i
+		results = append(results, result)
+		value = value + 1
+	}
 
 	return tgbotapi.InlineConfig{
 		InlineQueryID: update.InlineQuery.ID,
 		IsPersonal:    false,
 		CacheTime:     0,
-		Results:       []interface{}{result4, result6, result8, result10, result12, result20},
+		Results:       results,
 	}
 
 }
@@ -124,7 +122,7 @@ func getCommand(update tgbotapi.Update) tgbotapi.MessageConfig {
 			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 		}
 	} else if randomLimit, ok := diceStringInt[update.Message.Text]; ok {
-		msg.Text = getMessage(getName(*update.Message.From), getDice(randomLimit))
+		msg.Text = getDiceMessage(getName(*update.Message.From), getDice(randomLimit))
 	}
 	return msg
 }
