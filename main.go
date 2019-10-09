@@ -12,16 +12,16 @@ import (
 )
 
 const (
-	configPath    = "config/config.json"
-	dice4         = "4 sided dice"
-	dice6         = "6 sided dice"
-	dice8         = "8 sided dice"
-	dice10        = "10 sided dice"
-	dice12        = "12 sided dice"
-	dice20        = "20 sided dice"
-	help          = "telegram bot for rolling dice\n/open to open keyboard\n/close to close keyboard"
-	openKeyboard  = "roll dice?"
-	closeKeyboard = "closing keyboard"
+	configPath     = "config/config.json"
+	dice4          = "4 sided dice"
+	dice6          = "6 sided dice"
+	dice8          = "8 sided dice"
+	dice10         = "10 sided dice"
+	dice12         = "12 sided dice"
+	dice20         = "20 sided dice"
+	help           = "telegram bot for rolling dice\n/open to open keyboard\n/close to close keyboard"
+	openKeyboard   = "roll dice?"
+	removeKeyboard = "removing keyboard"
 )
 
 var numericKeyboard = tgbotapi.NewReplyKeyboard(
@@ -85,18 +85,17 @@ func getDiceMessage(name string, random int) string {
 }
 
 func getDiceRollMessage(name string, dice string, random int) string {
-	return fmt.Sprintf("%s rolled a %s, and got a %d ", name, dice, random)
+	return fmt.Sprintf("%s rolled a %s and got a %d ", name, dice, random)
 }
 
+//identify using title
 func getQuery(update tgbotapi.Update) tgbotapi.InlineConfig {
 	results := []interface{}{}
-	value := 1
 	for i, v := range diceStringInt {
-		result := tgbotapi.NewInlineQueryResultArticle(mapIntString[value], i,
+		result := tgbotapi.NewInlineQueryResultArticle(i, i,
 			getDiceRollMessage(getName(*update.InlineQuery.From), i, getDice(v)))
 		result.Description = i
 		results = append(results, result)
-		value = value + 1
 	}
 
 	return tgbotapi.InlineConfig{
@@ -105,7 +104,6 @@ func getQuery(update tgbotapi.Update) tgbotapi.InlineConfig {
 		CacheTime:     0,
 		Results:       results,
 	}
-
 }
 
 func getCommand(update tgbotapi.Update) tgbotapi.MessageConfig {
@@ -118,7 +116,7 @@ func getCommand(update tgbotapi.Update) tgbotapi.MessageConfig {
 			msg.Text = openKeyboard
 			msg.ReplyMarkup = numericKeyboard
 		case "close":
-			msg.Text = closeKeyboard
+			msg.Text = removeKeyboard
 			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 		}
 	} else if randomLimit, ok := diceStringInt[update.Message.Text]; ok {
