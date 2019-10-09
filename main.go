@@ -85,7 +85,7 @@ func getDiceMessage(name string, random int) string {
 }
 
 func getDiceRollMessage(name string, dice string, random int) string {
-	return fmt.Sprintf("%s rolled a %s, ", name, dice) + getDiceMessage(name, random)
+	return fmt.Sprintf("%s rolled a %s, and got a %d ", name, dice, random)
 }
 
 func getQuery(update tgbotapi.Update) tgbotapi.InlineConfig {
